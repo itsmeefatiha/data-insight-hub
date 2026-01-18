@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,6 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Third-party apps
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'corsheaders',
+    # Custom apps
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -128,6 +136,15 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny', # Change to IsAuthenticated later
+        'rest_framework.permissions.IsAuthenticated',
     ],
+}
+
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),  # Short life for security
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # Long life for convenience
+    'ROTATE_REFRESH_TOKENS': True,                   # New refresh token on every use
+    'BLACKLIST_AFTER_ROTATION': True,                # Old refresh token becomes invalid
+    'AUTH_HEADER_TYPES': ('Bearer',),                # Header format: "Bearer <token>"
 }
