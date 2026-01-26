@@ -19,6 +19,20 @@ from django.urls import include, path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenBlacklistView
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+# --- Swagger Setup ---
+schema_view = get_schema_view(
+   openapi.Info(
+      title="Data Insight Hub API",
+      default_version='v1',
+      description="API documentation for the Data Insight Hub PFE Project",
+   ),
+   public=True,
+   permission_classes=(permissions.AllowAny,),
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,6 +40,11 @@ urlpatterns = [
     path('api/auth/', include('djoser.urls.jwt')),
     path('api/auth/social/', include('djoser.social.urls')),
     path('api/auth/logout/', TokenBlacklistView.as_view(), name='token_blacklist'),
+    path('api/data/', include('data_manager.urls')),
+    # The standard Swagger UI
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    # The ReDoc UI (A cleaner, alternative look)
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
 
 if settings.DEBUG:
