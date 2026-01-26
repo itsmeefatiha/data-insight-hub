@@ -40,6 +40,7 @@ urlpatterns = [
     path('api/auth/', include('djoser.urls.jwt')),
     path('api/auth/social/', include('djoser.social.urls')),
     path('api/auth/logout/', TokenBlacklistView.as_view(), name='token_blacklist'),
+    path('api/data/', include('data_manager.urls')),
     # The standard Swagger UI
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     # The ReDoc UI (A cleaner, alternative look)

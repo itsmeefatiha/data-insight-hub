@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     # Custom apps
     'users',
+    'data_manager',
 ]
 
 MIDDLEWARE = [
