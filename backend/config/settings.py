@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     # Custom apps
     'users',
     'data_manager',
+    'analytics',
 ]
 
 MIDDLEWARE = [
