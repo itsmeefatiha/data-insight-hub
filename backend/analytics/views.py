@@ -23,3 +23,28 @@ class AnalysisSummaryView(APIView):
             })
         except AnalysisResult.DoesNotExist:
             return Response({"status": "processing", "message": "Summary is being generated..."}, status=202)
+
+# --- 2. The Table View (For the "Full Data" Scroll) ---
+class DataFramePagination(PageNumberPagination):
+    page_size = 50 # Send 50 rows at a time (Crucial for performance)
+    page_size_query_param = 'page_size'
+
+class FileTableView(APIView):
+    def get(self, request, pk):
+        data_source = get_object_or_404(DataSource, pk=pk, owner=request.user)
+        
+        try:
+            df = load_dataset(data_source.file.path)
+            
+            # Convert DataFrame to a list of dicts: [{"col1": 1}, {"col1": 2}...]
+            # Replace NaNs with None for valid JSON
+            data = df.where(pd.notnull(df), None).to_dict(orient='records')
+            
+            # Use Pagination (So 100k rows don't freeze the browser)
+            paginator = DataFramePagination()
+            result_page = paginator.paginate_queryset(data, request)
+            
+            return paginator.get_paginated_response(result_page)
+            
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
