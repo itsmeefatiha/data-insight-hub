@@ -48,3 +48,37 @@ class FileTableView(APIView):
             
         except Exception as e:
             return Response({"error": str(e)}, status=400)
+
+# --- 3. The Calculator View (For Custom Metrics) ---
+class CustomMetricView(APIView):
+    def post(self, request, pk):
+        """
+        Expects: { "column": "age", "metric": "mean" }
+        """
+        data_source = get_object_or_404(DataSource, pk=pk, owner=request.user)
+        column = request.data.get('column')
+        metric = request.data.get('metric')
+        
+        df = load_dataset(data_source.file.path)
+        
+        result = None
+        try:
+            if metric == 'mean':
+                result = df[column].mean()
+            elif metric == 'median':
+                result = df[column].median()
+            elif metric == 'max':
+                result = df[column].max()
+            elif metric == 'min':
+                result = df[column].min()
+            elif metric == 'std': # Standard Deviation
+                result = df[column].std()
+            elif metric == 'count':
+                result = df[column].count()
+                
+            return Response({"column": column, "metric": metric, "result": result})
+            
+        except KeyError:
+            return Response({"error": f"Column '{column}' not found"}, status=400)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
