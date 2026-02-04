@@ -53,16 +53,23 @@ class FileTableView(APIView):
 class CustomMetricView(APIView):
     def post(self, request, pk):
         """
-        Expects: { "column": "age", "metric": "mean" }
+        Expects: 
+        1. Single Column: { "column": "age", "metric": "mean" }
+        2. Two Columns:   { "column": "age", "second_column": "salary", "metric": "correlation" }
         """
         data_source = get_object_or_404(DataSource, pk=pk, owner=request.user)
+        
+        # Get parameters
         column = request.data.get('column')
+        second_column = request.data.get('second_column')
         metric = request.data.get('metric')
         
-        df = load_dataset(data_source.file.path)
-        
-        result = None
         try:
+            # Load Data
+            df = load_dataset(data_source.file.path)
+            result = None
+
+            # --- Single Column Metrics ---
             if metric == 'mean':
                 result = df[column].mean()
             elif metric == 'median':
@@ -71,14 +78,38 @@ class CustomMetricView(APIView):
                 result = df[column].max()
             elif metric == 'min':
                 result = df[column].min()
-            elif metric == 'std': # Standard Deviation
+            elif metric == 'std':
                 result = df[column].std()
+            elif metric == 'var':
+                result = df[column].var()
             elif metric == 'count':
                 result = df[column].count()
+
+            # --- Two Column Metrics ---
+            elif metric == 'correlation':
+                if not second_column:
+                    return Response({"error": "Correlation requires a 'second_column'"}, status=400)
                 
-            return Response({"column": column, "metric": metric, "result": result})
+                # Check if both exist
+                if second_column not in df.columns:
+                     return Response({"error": f"Column '{second_column}' not found"}, status=400)
+
+                # Calculate Pearson correlation
+                result = df[column].corr(df[second_column])
+            
+            else:
+                return Response({"error": f"Metric '{metric}' is not supported"}, status=400)
+
+            # Return Clean Response
+            return Response({
+                "column": column,
+                "second_column": second_column, # Returns null if not used
+                "metric": metric,
+                "result": result
+            })
             
         except KeyError:
             return Response({"error": f"Column '{column}' not found"}, status=400)
         except Exception as e:
-            return Response({"error": str(e)}, status=400)
+            # This catches things like trying to calculate Mean on text columns
+            return Response({"error": f"Math error: {str(e)}"}, status=400)
