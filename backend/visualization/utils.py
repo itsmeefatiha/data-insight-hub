@@ -17,3 +17,14 @@ def prepare_histogram_data(df, column):
         "labels": [f"{int(bin_edges[i])}-{int(bin_edges[i+1])}" for i in range(len(counts))],
         "values": counts.tolist()
     }
+
+def prepare_pie_chart_data(df, column):
+    """
+    Returns counts for categorical data.
+    e.g., {"Male": 10, "Female": 15}
+    """
+    counts = df[column].value_counts().head(10) # Limit to top 10 to avoid messy pies
+    return {
+        "labels": counts.index.tolist(),
+        "values": counts.values.tolist()
+    }
