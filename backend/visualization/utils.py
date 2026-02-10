@@ -28,3 +28,16 @@ def prepare_pie_chart_data(df, column):
         "labels": counts.index.tolist(),
         "values": counts.values.tolist()
     }
+
+def prepare_scatter_data(df, col_x, col_y):
+    """
+    Returns X/Y coordinates for correlation plots.
+    """
+    # Keep only rows where both values exist
+    data = df[[col_x, col_y]].dropna()
+    
+    # Format: [{x: 10, y: 200}, {x: 15, y: 300}...]
+    points = [{"x": row[col_x], "y": row[col_y]} for index, row in data.iterrows()]
+    
+    # Limit points for performance (don't send 100k dots)
+    return points[:1000]
